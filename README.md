@@ -1,1 +1,0 @@
-# Finite-Order-Kernel-Regression-Estimation-on-the-Circle
