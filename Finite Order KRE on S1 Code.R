@@ -8,6 +8,9 @@ library(doParallel)
 
 #Load your formatted data; angles in column 1, response variable in column 2
 data=read.csv("sampleData.csv")
+angleData=data[,1]
+YData=data[,2]
+
 
 #Define the ceiling and floor functions
 newCeiling<-function(u){if(u%%1==0){u+1}else{ceiling(u)}}
