@@ -22,12 +22,12 @@ n<-length(YData)
 num_cores <- detectCores() - 1 # Leave one core free so as to not overload machine
 cl <- makeCluster(num_cores)
 clusterExport(cl,"angleData")
-diffMat1<- parSapply(cl,1:n, function(i){angleData[i]-angleData[-i]})
+diffMat<- parSapply(cl,1:n, function(i){angleData[i]-angleData[-i]})
 
 
 registerDoParallel(cl)
 
-sCandidates = seq(1.5, 5.5, 0.05) #Adjust this range as needed. These are the values of s that will be evaluated in the CV(s) function 
+sCandidates = seq(0.3, 2.5, 0.05) #Adjust this range as needed. These are the values of s that will be evaluated in the CV(s) function 
 
 #perform the cross-validation step in parallel
 CV <- foreach(k = 1:length(sCandidates), .combine = 'c') %dopar% {
