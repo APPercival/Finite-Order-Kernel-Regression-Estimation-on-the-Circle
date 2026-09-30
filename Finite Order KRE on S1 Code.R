@@ -8,8 +8,8 @@ library(doParallel)
 
 #Load your formatted data; angles in column 1, response variable in column 2
 data=read.csv("sampleData.csv")
-angleData=data[,1]
-YData=data[,2]
+angleData=data$angleData
+YData=data$YData
 
 
 #Define the ceiling and floor functions
@@ -21,6 +21,10 @@ n<-length(YData)
 
 num_cores <- detectCores() - 1 # Leave one core free so as to not overload machine
 cl <- makeCluster(num_cores)
+clusterExport(cl,"angleData")
+diffMat1<- parSapply(cl,1:n, function(i){angleData[i]-angleData[-i]})
+
+
 registerDoParallel(cl)
 
 sCandidates = seq(1.5, 5.5, 0.05) #Adjust this range as needed. These are the values of s that will be evaluated in the CV(s) function 
@@ -30,9 +34,9 @@ CV <- foreach(k = 1:length(sCandidates), .combine = 'c') %dopar% {
   
   s = sCandidates[k]
   r = newCeiling(s) + 3
-  Trunc = newFloor(((1 / (pi * (r - 1))) * (n - 1)^((s + r) / (2 * s + 1)))^(1 / (r - 1))) + 1
+  Trunc = newFloor(((1 / (pi * (r - 1))) * (n)^((s + r) / (2 * s + 1)))^(1 / (r - 1))) + 1
   g = function(u) { 1 / (1 + abs(u)^r) }
-  h = (n - 1)^(-1 / (2 * s + 1))
+  h = (n)^(-1 / (2 * s + 1))
   nu_seq = 1:Trunc
   g_terms <- g(h * nu_seq)
   
@@ -41,10 +45,11 @@ CV <- foreach(k = 1:length(sCandidates), .combine = 'c') %dopar% {
   bottomCV = rep(0, n)
   
   for(i in 1:n) {
-    diff_angles <- angleData[i] - angleData[-i]
+ #   diff_angles <- angleData[i] - angleData[-i]
     YData_subset <- YData[-i]
-    temp_vec1 <- drop(g_terms %*% cos(outer(nu_seq, diff_angles)))
-    temp_vec2 <- 1 + 2 * temp_vec1
+  #  temp_vec1 <- drop(g_terms %*% cos(outer(nu_seq, diff_angles)))
+    temp_vec1 <- drop(g_terms %*% cos(outer(nu_seq, diffMat[,i])))
+     temp_vec2 <- 1 + 2 * temp_vec1
     bottomCV[i] <- sum(temp_vec2)
     topCV[i] <- sum(temp_vec2 * YData_subset)
     CVvec[i] = (YData[i] - topCV[i] / bottomCV[i])^2
@@ -57,9 +62,9 @@ stopCluster(cl)
 
 s=sCandidates[which.min(CV)]#Select the s which minimised the CV function
 r=newCeiling(s)+3
-Trunc=newFloor(((1/(pi* (r - 1))) *(n)^((s + r)/(2* s + 1)))^(1/(  r - 1)))+1
+Trunc=newFloor(((1/(pi* (r - 1))) *(n - 1)^((s + r)/(2* s + 1)))^(1/(  r - 1)))+1
 g=function(u){1/(1+abs(u)^r)}
-h=(n)^(-1/(2*s+1))
+h=(n-1)^(-1/(2*s+1))
 nu_seq=1:Trunc
 g_terms<-g(h*nu_seq)
 
