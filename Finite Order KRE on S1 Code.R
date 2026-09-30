@@ -57,9 +57,9 @@ stopCluster(cl)
 
 s=sCandidates[which.min(CV)]#Select the s which minimised the CV function
 r=newCeiling(s)+3
-Trunc=newFloor(((1/(pi* (r - 1))) *(n - 1)^((s + r)/(2* s + 1)))^(1/(  r - 1)))+1
+Trunc=newFloor(((1/(pi* (r - 1))) *(n)^((s + r)/(2* s + 1)))^(1/(  r - 1)))+1
 g=function(u){1/(1+abs(u)^r)}
-h=(n-1)^(-1/(2*s+1))
+h=(n)^(-1/(2*s+1))
 nu_seq=1:Trunc
 g_terms<-g(h*nu_seq)
 
